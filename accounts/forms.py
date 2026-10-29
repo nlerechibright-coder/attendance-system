@@ -6,15 +6,31 @@ from .models import StudentProfile, LecturerProfile
 
 User = get_user_model()
 
+LEVELS_FOUR_YEAR = ['100', '200', '300', '400']
+LEVELS_FIVE_YEAR = ['100', '200', '300', '400', '500']
+LEVEL_CHOICES = [('', 'Select level...')] + [(l, l + ' Level') for l in LEVELS_FIVE_YEAR]
+
+
+def allowed_levels_for_department(department):
+    if department is None:
+        return LEVELS_FIVE_YEAR
+    faculty = getattr(department, 'faculty', None)
+    if faculty is not None and getattr(faculty, 'is_five_year', False):
+        return LEVELS_FIVE_YEAR
+    return LEVELS_FOUR_YEAR
+
+
 class CustomAuthenticationForm(AuthenticationForm):
     username = forms.CharField(widget=forms.TextInput(attrs={'class': 'input', 'placeholder': 'Username'}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'input', 'placeholder': 'Password'}))
+
 
 class StudentProfileForm(forms.ModelForm):
     username = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class': 'input', 'placeholder': 'Login username'}))
     first_name = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'class': 'input', 'placeholder': 'First name'}))
     last_name = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'class': 'input', 'placeholder': 'Last name'}))
     password = forms.CharField(required=False, widget=forms.PasswordInput(attrs={'class': 'input'}), help_text='Required for new students.')
+    level = forms.ChoiceField(required=False, choices=LEVEL_CHOICES, widget=forms.Select(attrs={'class': 'input'}))
 
     class Meta:
         model = StudentProfile
@@ -22,7 +38,6 @@ class StudentProfileForm(forms.ModelForm):
         widgets = {
             'registration_number': forms.TextInput(attrs={'class': 'input', 'placeholder': 'e.g., CSC/21/1024'}),
             'department': forms.Select(attrs={'class': 'input'}),
-            'level': forms.TextInput(attrs={'class': 'input', 'placeholder': 'e.g., 300'}),
             'gender': forms.Select(attrs={'class': 'input'}, choices=[('', 'Select gender...'), ('Male', 'Male'), ('Female', 'Female')]),
             'is_active': forms.CheckboxInput(attrs={'class': 'h-6 w-6 rounded-lg border-slate-300 accent-indigo-600'}),
         }
@@ -40,14 +55,28 @@ class StudentProfileForm(forms.ModelForm):
     def clean_username(self):
         username = self.cleaned_data['username'].strip()
         qs = User.objects.filter(username=username)
-        if self.instance and self.instance.pk: qs = qs.exclude(pk=self.instance.user_id)
-        if qs.exists(): raise forms.ValidationError('This username is already taken.')
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.user_id)
+        if qs.exists():
+            raise forms.ValidationError('This username is already taken.')
         return username
 
     def clean_password(self):
         password = self.cleaned_data.get('password')
-        if password: validate_password(password)
+        if password:
+            validate_password(password)
         return password
+
+    def clean_level(self):
+        level = self.cleaned_data.get('level')
+        if not level:
+            return level
+        department = self.cleaned_data.get('department')
+        allowed = allowed_levels_for_department(department)
+        if level not in allowed:
+            raise forms.ValidationError('This level is not offered for the selected faculty (maximum ' + (allowed[-1] if allowed else '400') + ' Level).')
+        return level
+
 
 class LecturerProfileForm(forms.ModelForm):
     username = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class': 'input', 'placeholder': 'Login username'}))
@@ -77,11 +106,14 @@ class LecturerProfileForm(forms.ModelForm):
     def clean_username(self):
         username = self.cleaned_data['username'].strip()
         qs = User.objects.filter(username=username)
-        if self.instance and self.instance.pk: qs = qs.exclude(pk=self.instance.user_id)
-        if qs.exists(): raise forms.ValidationError('This username is already taken.')
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.user_id)
+        if qs.exists():
+            raise forms.ValidationError('This username is already taken.')
         return username
 
     def clean_password(self):
         password = self.cleaned_data.get('password')
-        if password: validate_password(password)
+        if password:
+            validate_password(password)
         return password

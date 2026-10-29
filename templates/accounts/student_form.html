@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
-{% block title %}Add Student{% endblock %}
+{% block title %}Student Form{% endblock %}
 {% block content %}
 <div class="card p-6 max-w-lg mx-auto">
-    <h2 class="text-xl font-bold mb-6">Add New Student</h2>
-    <form method="post" class="space-y-4">
+    <h2 class="text-xl font-bold mb-6">Student Details</h2>
+    <form method="post" class="space-y-4" id="studentForm">
         {% csrf_token %}
         {{ form.as_p }}
         <div class="flex gap-3 pt-4">
@@ -12,4 +12,32 @@
         </div>
     </form>
 </div>
+<script>
+(function () {
+    var dept = document.getElementById('id_department');
+    var lvl = document.getElementById('id_level');
+    if (!dept || !lvl) return;
+    var FIVE = {
+        {% for d in form.department.field.queryset %}
+        "{{ d.pk }}": {% if d.faculty.is_five_year %}true{% else %}false{% endif %},
+        {% endfor %}
+    };
+    function apply() {
+        var five = FIVE[dept.value] === true;
+        var max = five ? 500 : 400;
+        for (var j = 0; j < lvl.options.length; j++) {
+            var o = lvl.options[j];
+            if (!o.value) { continue; }
+            var n = parseInt(o.value, 10);
+            o.hidden = isNaN(n) ? false : (n > max);
+        }
+        if (lvl.value) {
+            var cur = parseInt(lvl.value, 10);
+            if (!isNaN(cur) && cur > max) { lvl.value = ''; }
+        }
+    }
+    dept.addEventListener('change', apply);
+    apply();
+})();
+</script>
 {% endblock %}

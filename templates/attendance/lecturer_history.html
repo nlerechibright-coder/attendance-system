@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}My History{% endblock %}
+{% block content %}
+<div class="space-y-6">
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="card p-5 text-center"><p class="text-3xl font-black text-indigo-600">{{ total_sessions }}</p><p class="text-xs font-bold uppercase text-slate-500 mt-1">Sessions</p></div>
+    <div class="card p-5 text-center"><p class="text-3xl font-black text-emerald-600">{{ total_records }}</p><p class="text-xs font-bold uppercase text-slate-500 mt-1">Attendance Marked</p></div>
+    <div class="card p-5 text-center"><p class="text-3xl font-black text-amber-500">{{ active_now }}</p><p class="text-xs font-bold uppercase text-slate-500 mt-1">Active Now</p></div>
+  </div>
+
+  <div class="card p-6">
+    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
+      <div>
+        <h2 class="text-xl font-bold">Session History</h2>
+        {% if selected_course %}
+          <p class="text-sm text-slate-500">Filtered to <strong>{{ selected_course.course_code }} &mdash; {{ selected_course.title }}</strong> &middot; <a href="{% url 'lecturer_history' %}" class="text-indigo-600 hover:underline">clear filter</a></p>
+        {% else %}
+          <p class="text-sm text-slate-500">All sessions you have run, with date, topic and the students (matric numbers) marked present.</p>
+        {% endif %}
+      </div>
+      <a href="{% url 'lecturer_classes' %}" class="btn-secondary btn-sm">My Classes</a>
+    </div>
+    <div class="overflow-x-auto"><table class="w-full text-sm text-left">
+      <thead class="text-xs uppercase bg-slate-50 text-slate-500"><tr>
+        <th class="px-4 py-3">Date</th><th class="px-4 py-3">Time</th><th class="px-4 py-3">Topic</th>
+        <th class="px-4 py-3">Code</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Present (Matric No.)</th><th class="px-4 py-3">Action</th>
+      </tr></thead>
+      <tbody>
+        {% for s in sessions %}
+        <tr class="border-b bg-white align-top">
+          <td class="px-4 py-3 font-medium">{{ s.session_date|date:"D, M d, Y" }}</td>
+          <td class="px-4 py-3">{{ s.start_time|time:"H:i" }}</td>
+          <td class="px-4 py-3">{{ s.course.title }}</td>
+          <td class="px-4 py-3">{{ s.course.course_code }}</td>
+          <td class="px-4 py-3">
+            {% if s.closed_at %}<span class="inline-flex items-center rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-700">Closed</span>
+            {% elif s.is_expired %}<span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">Expired</span>
+            {% else %}<span class="badge-green">Active</span>{% endif %}
+          </td>
+          <td class="px-4 py-3">
+            <span class="font-bold text-slate-700">{{ s.present_count }}</span>
+            <details open class="block">
+              <summary class="cursor-pointer list-none text-xs font-bold uppercase tracking-wider text-indigo-600 hover:text-indigo-500">Attendees</summary>
+              <ul class="mt-2 space-y-1 border-t border-slate-100 pt-2">
+                {% for r in s.records.all %}
+                <li class="text-xs leading-relaxed">
+                  <span class="font-bold text-slate-700">{{ r.student.user.get_full_name|default:r.student.user.username }}</span>
+                  &mdash; <span class="font-black text-slate-900">{{ r.student.registration_number }}</span>
+                  <span class="text-slate-400">&middot; {{ r.timestamp|time:"H:i" }} &middot; {{ r.verification_method }}</span>
+                </li>
+                {% empty %}
+                <li class="text-xs text-slate-400 italic">No attendance recorded yet.</li>
+                {% endfor %}
+              </ul>
+            </details>
+          </td>
+          <td class="px-4 py-3">
+            {% if s.is_active and not s.closed_at and not s.is_expired %}<a href="{% url 'scan_view' s.pk %}" class="btn-primary btn-sm">Scan</a>
+            {% else %}<span class="text-slate-400">&mdash;</span>{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="px-4 py-6 text-center text-slate-500">No sessions yet. Start one from My Classes.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+</div>
+{% endblock %}

@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+
 urlpatterns = [
     path('fingerprints/', views.FingerprintListView.as_view(), name='fingerprint_list'),
     path('fingerprints/enroll/<int:student_id>/', views.fingerprint_enroll, name='fingerprint_enroll'),
@@ -12,4 +13,6 @@ urlpatterns = [
     path('mark/<int:session_id>/', views.mark_attendance, name='mark_attendance'),
     path('reports/', views.report_dashboard, name='report_dashboard'),
     path('reports/export/', views.export_attendance_csv, name='export_attendance_csv'),
+    path('lecturer/classes/', views.lecturer_classes, name='lecturer_classes'),
+    path('lecturer/history/', views.lecturer_history, name='lecturer_history'),
 ]

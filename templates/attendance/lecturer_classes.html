@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}My Classes{% endblock %}
+{% block content %}
+<div class="card p-6">
+  <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-6">
+    <div>
+      <h2 class="text-xl font-bold">My Classes</h2>
+      <p class="text-sm text-slate-500">Courses assigned to you, by level, department and semester, with enrolled students and matric numbers.</p>
+    </div>
+    <a href="{% url 'lecturer_history' %}" class="btn-secondary btn-sm">View My History</a>
+  </div>
+  <div class="overflow-x-auto"><table class="w-full text-sm text-left">
+    <thead class="text-xs uppercase bg-slate-50 text-slate-500"><tr>
+      <th class="px-4 py-3">Code</th><th class="px-4 py-3">Topic</th><th class="px-4 py-3">Department</th>
+      <th class="px-4 py-3">Level</th><th class="px-4 py-3">Semester</th>
+      <th class="px-4 py-3 text-center">Unit</th><th class="px-4 py-3">Students (Matric No.)</th>
+      <th class="px-4 py-3 text-center">Sessions</th><th class="px-4 py-3">Actions</th>
+    </tr></thead>
+    <tbody>
+      {% for c in classes %}
+      <tr class="border-b bg-white align-top">
+        <td class="px-4 py-3 font-medium">{{ c.course_code }}</td>
+        <td class="px-4 py-3">{{ c.title }}</td>
+        <td class="px-4 py-3">{{ c.department.name|default:"—" }}</td>
+        <td class="px-4 py-3">{{ c.get_level_display|default:"—" }}</td>
+        <td class="px-4 py-3">{{ c.get_semester_display|default:"—" }}</td>
+        <td class="px-4 py-3 text-center">{{ c.unit }}</td>
+        <td class="px-4 py-3">
+          <span class="badge-green mb-2">{{ c.enrolled_count }}</span>
+          <details open class="block">
+            <summary class="cursor-pointer list-none text-xs font-bold uppercase tracking-wider text-indigo-600 hover:text-indigo-500">Roster</summary>
+            <ul class="mt-2 space-y-1 border-t border-slate-100 pt-2">
+              {% for e in c.enrolled_students.all %}
+              <li class="text-xs leading-relaxed">
+                <span class="font-bold text-slate-700">{{ e.student.user.get_full_name|default:e.student.user.username }}</span>
+                &mdash; <span class="font-black text-slate-900">{{ e.student.registration_number }}</span>{% if e.student.level %} <span class="text-slate-400">&middot; {{ e.student.level }}L</span>{% endif %}
+                {% if e.student.fingerprint_profile %}<span class="ml-1 inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">FP</span>{% else %}<span class="ml-1 inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-700">No FP</span>{% endif %}
+              </li>
+              {% empty %}
+              <li class="text-xs text-slate-400 italic">No students enrolled yet.</li>
+              {% endfor %}
+            </ul>
+          </details>
+        </td>
+        <td class="px-4 py-3 text-center">{{ c.session_count }}</td>
+        <td class="px-4 py-3 whitespace-nowrap">
+          <a href="{% url 'session_create' c.pk %}" class="btn-primary btn-sm mr-2">Start Session</a>
+          <a href="{% url 'lecturer_history' %}?course={{ c.pk }}" class="text-indigo-600 hover:underline text-xs font-bold uppercase tracking-wider">History</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="9" class="px-4 py-6 text-center text-slate-500">No classes assigned yet. Contact the administrator.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endblock %}

@@ -36,6 +36,7 @@
       <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}nav-link-active{% endif %}"><span>📊</span> Dashboard</a>
       <a href="{% url 'student_list' %}" class="nav-link {% if 'student' in request.resolver_match.url_name %}nav-link-active{% endif %}"><span>🎓</span> Students</a>
       <a href="{% url 'lecturer_list' %}" class="nav-link {% if 'lecturer' in request.resolver_match.url_name %}nav-link-active{% endif %}"><span>👨‍🏫</span> Lecturers</a>
+      <a href="{% url 'faculty_list' %}" class="nav-link {% if 'faculty' in request.resolver_match.url_name %}nav-link-active{% endif %}"><span>🏫</span> Faculties</a>
       <a href="{% url 'department_list' %}" class="nav-link {% if 'department' in request.resolver_match.url_name %}nav-link-active{% endif %}"><span>🏛️</span> Departments</a>
       <a href="{% url 'course_list' %}" class="nav-link {% if 'course' in request.resolver_match.url_name %}nav-link-active{% endif %}"><span>📚</span> Courses</a>
       <a href="{% url 'enrollment_list' %}" class="nav-link {% if 'enrollment' in request.resolver_match.url_name %}nav-link-active{% endif %}"><span>🔗</span> Enrollments</a>
@@ -52,11 +53,23 @@
   <div class="pt-14 lg:pl-72 lg:pt-0"><main class="mx-auto max-w-7xl px-4 py-8 lg:px-8">
 {% elif user.is_authenticated %}
 <div class="min-h-screen">
-  <header class="bg-slate-900 text-white"><div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-    <span class="text-lg font-black tracking-tight">Attendance Monitoring System</span>
-    <div class="flex items-center gap-4"><span class="hidden text-sm font-bold text-slate-300 sm:inline">{{ user.username }} ({{ user.get_role_display }})</span>
-    <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="rounded-lg bg-rose-600 px-4 py-2 text-sm font-bold">Sign Out</button></form></div>
-  </div></header>
+  <header class="bg-slate-900 text-white">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
+      <span class="text-lg font-black tracking-tight">Attendance Monitoring System</span>
+      <div class="flex items-center gap-4">
+        <span class="hidden text-sm font-bold text-slate-300 sm:inline">{{ user.username }} ({{ user.get_role_display }})</span>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="rounded-lg bg-rose-600 px-4 py-2 text-sm font-bold">Sign Out</button></form>
+      </div>
+    </div>
+    <nav class="border-t border-slate-800">
+      <div class="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4 py-2 text-sm font-bold">
+        <a href="{% url 'dashboard' %}" class="rounded-lg px-3 py-2 transition {% if request.resolver_match.url_name == 'dashboard' %}bg-indigo-600 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">Dashboard</a>
+        <a href="{% url 'lecturer_classes' %}" class="rounded-lg px-3 py-2 transition {% if request.resolver_match.url_name == 'lecturer_classes' %}bg-indigo-600 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">My Classes</a>
+        <a href="{% url 'lecturer_history' %}" class="rounded-lg px-3 py-2 transition {% if request.resolver_match.url_name == 'lecturer_history' %}bg-indigo-600 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">My History</a>
+        <a href="{% url 'report_dashboard' %}" class="rounded-lg px-3 py-2 transition {% if 'report' in request.resolver_match.url_name %}bg-indigo-600 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">Reports</a>
+      </div>
+    </nav>
+  </header>
   <main class="mx-auto max-w-7xl px-4 py-8">
 {% else %}
 <main class="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-4">

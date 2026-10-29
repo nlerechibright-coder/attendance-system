@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Faculties{% endblock %}
+{% block content %}
+<div class="card p-6">
+  <div class="flex justify-between items-center mb-6"><h2 class="text-xl font-bold">Faculty Management</h2><a href="{% url 'faculty_create' %}" class="btn-primary btn-sm">+ Add Faculty</a></div>
+  <div class="overflow-x-auto"><table class="w-full text-sm text-left">
+    <thead class="text-xs uppercase bg-slate-50 text-slate-500"><tr><th class="px-4 py-3">Code</th><th class="px-4 py-3">Name</th><th class="px-4 py-3">Programme</th><th class="px-4 py-3 text-center">Departments</th><th class="px-4 py-3">Actions</th></tr></thead>
+    <tbody>{% for f in faculties %}<tr class="border-b bg-white">
+      <td class="px-4 py-3 font-medium">{{ f.code }}</td><td class="px-4 py-3">{{ f.name }}</td>
+      <td class="px-4 py-3">{% if f.is_five_year %}<span class="badge-green">5-Year (500 Level)</span>{% else %}<span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">4-Year</span>{% endif %}</td>
+      <td class="px-4 py-3 text-center">{{ f.departments.count }}</td>
+      <td class="px-4 py-3"><a href="{% url 'faculty_update' f.pk %}" class="text-indigo-600 hover:underline">Edit</a></td>
+    </tr>{% empty %}<tr><td colspan="5" class="px-4 py-3 text-center text-slate-500">No faculties yet. Create a faculty first, then add departments under it.</td></tr>{% endfor %}</tbody>
+  </table></div>
+</div>
+{% endblock %}

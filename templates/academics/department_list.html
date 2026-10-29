@@ -2,29 +2,14 @@
 {% block title %}Departments{% endblock %}
 {% block content %}
 <div class="card p-6">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-bold">Department Management</h2>
-        <a href="{% url 'department_create' %}" class="btn-primary btn-sm">+ Add Department</a>
-    </div>
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm text-left">
-            <thead class="text-xs uppercase bg-slate-50 text-slate-500">
-                <tr><th class="px-4 py-3">Code</th><th class="px-4 py-3">Name</th><th class="px-4 py-3">Actions</th></tr>
-            </thead>
-            <tbody>
-                {% for dept in departments %}
-                <tr class="border-b bg-white">
-                    <td class="px-4 py-3 font-medium">{{ dept.code }}</td>
-                    <td class="px-4 py-3">{{ dept.name }}</td>
-                    <td class="px-4 py-3">
-                        <a href="{% url 'department_update' dept.pk %}" class="text-indigo-600 hover:underline mr-3">Edit</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="3" class="px-4 py-3 text-center text-slate-500">No departments found. Add one above.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+    <div class="flex justify-between items-center mb-6"><h2 class="text-xl font-bold">Department Management</h2><a href="{% url 'department_create' %}" class="btn-primary btn-sm">+ Add Department</a></div>
+    <div class="overflow-x-auto"><table class="w-full text-sm text-left">
+        <thead class="text-xs uppercase bg-slate-50 text-slate-500"><tr><th class="px-4 py-3">Code</th><th class="px-4 py-3">Name</th><th class="px-4 py-3">Faculty</th><th class="px-4 py-3">Actions</th></tr></thead>
+        <tbody>{% for dept in departments %}<tr class="border-b bg-white">
+            <td class="px-4 py-3 font-medium">{{ dept.code }}</td><td class="px-4 py-3">{{ dept.name }}</td>
+            <td class="px-4 py-3">{% if dept.faculty %}{{ dept.faculty.name }} ({{ dept.faculty.code }}){% else %}<span class="text-rose-600 font-bold">Unassigned - edit to set</span>{% endif %}</td>
+            <td class="px-4 py-3"><a href="{% url 'department_update' dept.pk %}" class="text-indigo-600 hover:underline">Edit</a></td>
+        </tr>{% empty %}<tr><td colspan="4" class="px-4 py-3 text-center text-slate-500">No departments found. Create a faculty first, then a department under it.</td></tr>{% endfor %}</tbody>
+    </table></div>
 </div>
 {% endblock %}

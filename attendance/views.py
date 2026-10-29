@@ -174,3 +174,46 @@ def export_attendance_csv(request):
     for rec in records:
         writer.writerow([rec.timestamp.strftime('%Y-%m-%d'), rec.timestamp.strftime('%H:%M:%S'), rec.session.course.course_code, rec.session.course.title, rec.session.lecturer.user.get_full_name() or rec.session.lecturer.user.username, rec.student.registration_number, rec.student.user.get_full_name() or rec.student.user.username, rec.status, rec.verification_method])
     return response
+
+
+@login_required
+def lecturer_classes(request):
+    if getattr(request.user, 'role', None) != 'lecturer' or not hasattr(request.user, 'lecturer_profile'):
+        messages.error(request, 'You do not have a lecturer profile.')
+        return redirect('dashboard')
+    lecturer = request.user.lecturer_profile
+    classes = (Course.objects.filter(assigned_lecturer=lecturer)
+               .select_related('department')
+               .annotate(enrolled_count=Count('enrolled_students', distinct=True),
+                         session_count=Count('sessions', distinct=True))
+               .order_by('course_code'))
+    return render(request, 'attendance/lecturer_classes.html', {'classes': classes, 'lecturer': lecturer})
+
+
+@login_required
+def lecturer_history(request):
+    if getattr(request.user, 'role', None) != 'lecturer' or not hasattr(request.user, 'lecturer_profile'):
+        messages.error(request, 'You do not have a lecturer profile.')
+        return redirect('dashboard')
+    lecturer = request.user.lecturer_profile
+    course_id = request.GET.get('course')
+    selected_course = None
+    if course_id:
+        selected_course = get_object_or_404(Course, pk=course_id, assigned_lecturer=lecturer)
+    base = AttendanceSession.objects.filter(lecturer=lecturer)
+    recs = AttendanceRecord.objects.filter(session__lecturer=lecturer)
+    if course_id:
+        base = base.filter(course_id=course_id)
+        recs = recs.filter(session__course_id=course_id)
+    sessions = (base.select_related('course', 'course__department')
+                .annotate(present_count=Count('records', distinct=True))
+                .order_by('-session_date', '-start_time'))
+    context = {
+        'sessions': sessions,
+        'total_sessions': base.count(),
+        'total_records': recs.count(),
+        'active_now': base.filter(is_active=True, closed_at__isnull=True).count(),
+        'selected_course': selected_course,
+        'lecturer': lecturer,
+    }
+    return render(request, 'attendance/lecturer_history.html', context)
