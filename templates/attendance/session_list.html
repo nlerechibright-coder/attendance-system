@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Attendance Sessions{% endblock %}
+{% block content %}
+<div class="card p-6">
+    <h2 class="text-xl font-bold mb-6">Attendance Sessions</h2>
+    <div class="overflow-x-auto"><table class="w-full text-sm text-left">
+        <thead class="text-xs uppercase bg-slate-50 text-slate-500"><tr><th class="px-4 py-3">Course</th><th class="px-4 py-3">Date</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Actions</th></tr></thead>
+        <tbody>{% for session in sessions %}<tr class="border-b bg-white">
+            <td class="px-4 py-3 font-medium">{{ session.course.course_code }}</td><td class="px-4 py-3">{{ session.session_date }}</td>
+            <td class="px-4 py-3">{% if session.is_active and not session.closed_at %}<span class="badge-green">Active</span>{% else %}<span class="badge-red">Closed</span>{% endif %}</td>
+            <td class="px-4 py-3">
+                {% if session.is_active and not session.closed_at %}
+                    <a href="{% url 'scan_view' session.pk %}" class="btn-primary btn-sm mr-2">Scan</a>
+                    <form method="post" action="{% url 'session_close' session.pk %}" class="inline"><{% csrf_token %}<button type="submit" class="btn-danger btn-sm">Close</button></form>
+                {% else %}
+                    <a href="{% url 'report_dashboard' %}?course={{ session.course.pk }}" class="text-indigo-600 hover:underline">View Report</a>
+                {% endif %}
+            </td>
+        </tr>{% empty %}<tr><td colspan="4" class="px-4 py-3 text-center text-slate-500">No sessions found. Go to Courses to start one.</td></tr>{% endfor %}</tbody>
+    </table></div>
+</div>{% endblock %}

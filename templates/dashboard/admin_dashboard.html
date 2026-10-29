@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="card p-6">
+    <h2 class="text-2xl font-black mb-6">Administrator Dashboard</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-indigo-50 p-6 rounded-xl text-center"><p class="text-3xl font-black text-indigo-600">{{ total_students|default:"0" }}</p><p class="text-sm font-bold uppercase text-slate-500">Total Students</p></div>
+        <div class="bg-emerald-50 p-6 rounded-xl text-center"><p class="text-3xl font-black text-emerald-600">{{ total_lecturers|default:"0" }}</p><p class="text-sm font-bold uppercase text-slate-500">Total Lecturers</p></div>
+        <div class="bg-amber-50 p-6 rounded-xl text-center"><p class="text-3xl font-black text-amber-600">{{ active_sessions|default:"0" }}</p><p class="text-sm font-bold uppercase text-slate-500">Active Sessions</p></div>
+    </div>
+</div>
+{% endblock %}

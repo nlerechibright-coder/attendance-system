@@ -1,0 +1,57 @@
+﻿import os
+
+lecturer_dashboard = """{% extends 'base.html' %}
+{% block title %}Lecturer Dashboard{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <!-- Active Sessions Section -->
+    <div class="card p-6">
+        <h2 class="text-xl font-bold mb-4">Active Sessions</h2>
+        <div class="space-y-3">
+            {% for session in active_sessions %}
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-emerald-50 rounded-xl ring-1 ring-emerald-200 gap-4">
+                <div>
+                    <p class="font-bold text-emerald-800 text-lg">{{ session.course.course_code }} - {{ session.course.title }}</p>
+                    <p class="text-sm text-emerald-600">Started: {{ session.start_time|date:"M d, Y H:i" }} | Duration: {{ session.duration_minutes }} mins</p>
+                </div>
+                <a href="{% url 'scan_view' session.pk %}" class="btn-primary btn-sm">Open Scanner</a>
+            </div>
+            {% empty %}
+            <p class="text-slate-500 italic">No active sessions right now. Start one from your courses below.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Assigned Courses Section -->
+    <div class="card p-6">
+        <h2 class="text-xl font-bold mb-4">My Assigned Courses</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="text-xs uppercase bg-slate-50 text-slate-500">
+                    <tr><th class="px-4 py-3">Code</th><th class="px-4 py-3">Title</th><th class="px-4 py-3">Department</th><th class="px-4 py-3">Actions</th></tr>
+                </thead>
+                <tbody>
+                    {% for course in courses %}
+                    <tr class="border-b bg-white">
+                        <td class="px-4 py-3 font-medium">{{ course.course_code }}</td>
+                        <td class="px-4 py-3">{{ course.title }}</td>
+                        <td class="px-4 py-3">{{ course.department.name|default:"N/A" }}</td>
+                        <td class="px-4 py-3">
+                            <a href="{% url 'session_create' course.pk %}" class="btn-primary btn-sm">Start Session</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="px-4 py-3 text-center text-slate-500">You are not assigned to any courses yet. Contact the administrator.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}"""
+
+full_path = os.path.join('templates', 'dashboard', 'lecturer_dashboard.html')
+os.makedirs(os.path.dirname(full_path), exist_ok=True)
+with open(full_path, 'w', encoding='utf-8') as f:
+    f.write(lecturer_dashboard)
+print("LECTURER DASHBOARD UPDATED WITH ACTIONS!")

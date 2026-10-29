@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="card p-8 max-w-md mx-auto mt-20">
+    <h2 class="text-2xl font-black text-slate-900 mb-6 text-center">Management Login</h2>
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        <div><label class="label">Username</label><input type="text" name="username" required class="input" placeholder="admin"></div>
+        <div><label class="label">Password</label><input type="password" name="password" required class="input" placeholder="••••••••"></div>
+        <button type="submit" class="btn-primary w-full">Sign In</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Fingerprint Profiles{% endblock %}
+{% block content %}
+<div class="card p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold">Fingerprint Profile Management</h2>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+            <thead class="text-xs uppercase bg-slate-50 text-slate-500">
+                <tr><th class="px-4 py-3">Reg Number</th><th class="px-4 py-3">Student Name</th><th class="px-4 py-3">Profile ID</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr class="border-b bg-white">
+                    <td class="px-4 py-3 font-medium">{{ student.registration_number }}</td>
+                    <td class="px-4 py-3">{{ student.user.get_full_name|default:student.user.username }}</td>
+                    <td class="px-4 py-3">{% if student.fingerprint_profile %}{{ student.fingerprint_profile.profile_id }}{% else %}Not Enrolled{% endif %}</td>
+                    <td class="px-4 py-3">
+                        {% if student.fingerprint_profile and student.fingerprint_profile.is_active %}
+                            <span class="badge-green">Active</span>
+                        {% else %}
+                            <span class="badge-red">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        <form method="post" action="{% url 'fingerprint_enroll' student.pk %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-primary btn-sm">Enroll / Update</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="px-4 py-3 text-center text-slate-500">No students found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

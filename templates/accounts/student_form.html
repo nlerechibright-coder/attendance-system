@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Add Student{% endblock %}
+{% block content %}
+<div class="card p-6 max-w-lg mx-auto">
+    <h2 class="text-xl font-bold mb-6">Add New Student</h2>
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="flex gap-3 pt-4">
+            <button type="submit" class="btn-primary">Save Student</button>
+            <a href="{% url 'student_list' %}" class="btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

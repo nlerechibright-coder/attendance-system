@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Lecturer Dashboard{% endblock %}
+{% block content %}
+<div class="card p-6">
+    <h2 class="text-xl font-bold mb-4">Lecturer Dashboard</h2>
+    <p class="text-slate-600">Welcome, Lecturer. Your dashboard is ready.</p>
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-danger btn-sm mt-4">Sign Out</button>
+    </form>
+</div>
+{% endblock %}

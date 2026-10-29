@@ -11,28 +11,29 @@ from django.http import JsonResponse, HttpResponse
 import json
 import csv
 from django.utils import timezone
+from functools import wraps
 
 from academics.models import Course, Department, StudentCourseEnrollment
 from attendance.models import AttendanceRecord, AttendanceSession, DemoFingerprintProfile
 from accounts.models import LecturerProfile, StudentProfile
+from .forms import CustomAuthenticationForm, LecturerProfileForm, StudentProfileForm
 
 User = get_user_model()
-
-# ---------------- AUTHENTICATION ----------------
 
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
+        form = CustomAuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
             login(request, user)
             return redirect('dashboard')
         else:
             messages.error(request, 'Invalid username or password.')
-    return render(request, 'accounts/login.html')
+    else:
+        form = CustomAuthenticationForm()
+    return render(request, 'accounts/login.html', {'form': form})
 
 def logout_view(request):
     logout(request)
@@ -60,9 +61,8 @@ def dashboard_view(request):
         messages.error(request, 'Unauthorized role.')
         return redirect('login')
 
-# ---------------- ADMIN DECORATOR ----------------
-
 def admin_required(view_func):
+    @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated or getattr(request.user, 'role', None) != 'admin':
             messages.error(request, 'You do not have permission to access this page.')
@@ -70,15 +70,12 @@ def admin_required(view_func):
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
-# ---------------- STUDENTS ----------------
-
 @method_decorator(admin_required, name='dispatch')
 class StudentListView(ListView):
     model = StudentProfile
     template_name = 'accounts/student_list.html'
     context_object_name = 'students'
     paginate_by = 10
-
     def get_queryset(self):
         qs = StudentProfile.objects.select_related('user', 'department').order_by('registration_number')
         q = self.request.GET.get('q', '').strip()
@@ -86,7 +83,52 @@ class StudentListView(ListView):
             qs = qs.filter(Q(registration_number__icontains=q) | Q(user__first_name__icontains=q) | Q(user__last_name__icontains=q))
         return qs
 
-# ---------------- LECTURERS ----------------
+@method_decorator(admin_required, name='dispatch')
+class StudentCreateView(CreateView):
+    model = StudentProfile
+    form_class = StudentProfileForm
+    template_name = 'accounts/student_form.html'
+    success_url = reverse_lazy('student_list')
+    def form_valid(self, form):
+        try:
+            with transaction.atomic():
+                user = User.objects.create_user(username=form.cleaned_data['username'], password=form.cleaned_data['password'], first_name=form.cleaned_data.get('first_name', ''), last_name=form.cleaned_data.get('last_name', ''), role='student', is_staff=False, is_superuser=False)
+                student = form.save(commit=False)
+                student.user = user
+                student.save()
+                self.object = student
+        except Exception:
+            form.add_error(None, 'Could not create the student account. Verify all fields and try again.')
+            return self.form_invalid(form)
+        messages.success(self.request, f'Student {student.registration_number} created successfully.')
+        return redirect('student_list')
+
+@method_decorator(admin_required, name='dispatch')
+class StudentUpdateView(UpdateView):
+    model = StudentProfile
+    form_class = StudentProfileForm
+    template_name = 'accounts/student_form.html'
+    success_url = reverse_lazy('student_list')
+    def form_valid(self, form):
+        try:
+            with transaction.atomic():
+                student = form.save(commit=False)
+                user = student.user
+                user.username = form.cleaned_data['username']
+                user.first_name = form.cleaned_data.get('first_name', '')
+                user.last_name = form.cleaned_data.get('last_name', '')
+                user.is_active = student.is_active
+                password = form.cleaned_data.get('password')
+                if password:
+                    user.set_password(password)
+                user.save()
+                student.save()
+                self.object = student
+        except Exception:
+            form.add_error(None, 'Could not update the student record.')
+            return self.form_invalid(form)
+        messages.success(self.request, f'Student {student.registration_number} updated.')
+        return redirect('student_list')
 
 @method_decorator(admin_required, name='dispatch')
 class LecturerListView(ListView):
@@ -94,10 +136,56 @@ class LecturerListView(ListView):
     template_name = 'accounts/lecturer_list.html'
     context_object_name = 'lecturers'
     paginate_by = 10
-
     def get_queryset(self):
         qs = LecturerProfile.objects.select_related('user', 'department').order_by('staff_id')
         q = self.request.GET.get('q', '').strip()
         if q:
             qs = qs.filter(Q(staff_id__icontains=q) | Q(user__first_name__icontains=q) | Q(user__last_name__icontains=q))
         return qs
+
+@method_decorator(admin_required, name='dispatch')
+class LecturerCreateView(CreateView):
+    model = LecturerProfile
+    form_class = LecturerProfileForm
+    template_name = 'accounts/lecturer_form.html'
+    success_url = reverse_lazy('lecturer_list')
+    def form_valid(self, form):
+        try:
+            with transaction.atomic():
+                user = User.objects.create_user(username=form.cleaned_data['username'], password=form.cleaned_data['password'], first_name=form.cleaned_data.get('first_name', ''), last_name=form.cleaned_data.get('last_name', ''), role='lecturer', is_staff=False, is_superuser=False)
+                lecturer = form.save(commit=False)
+                lecturer.user = user
+                lecturer.save()
+                self.object = lecturer
+        except Exception:
+            form.add_error(None, 'Could not create the lecturer account.')
+            return self.form_invalid(form)
+        messages.success(self.request, f'Lecturer {lecturer.staff_id} created successfully.')
+        return redirect('lecturer_list')
+
+@method_decorator(admin_required, name='dispatch')
+class LecturerUpdateView(UpdateView):
+    model = LecturerProfile
+    form_class = LecturerProfileForm
+    template_name = 'accounts/lecturer_form.html'
+    success_url = reverse_lazy('lecturer_list')
+    def form_valid(self, form):
+        try:
+            with transaction.atomic():
+                lecturer = form.save(commit=False)
+                user = lecturer.user
+                user.username = form.cleaned_data['username']
+                user.first_name = form.cleaned_data.get('first_name', '')
+                user.last_name = form.cleaned_data.get('last_name', '')
+                user.is_active = lecturer.is_active
+                password = form.cleaned_data.get('password')
+                if password:
+                    user.set_password(password)
+                user.save()
+                lecturer.save()
+                self.object = lecturer
+        except Exception:
+            form.add_error(None, 'Could not update the lecturer record.')
+            return self.form_invalid(form)
+        messages.success(self.request, f'Lecturer {lecturer.staff_id} updated.')
+        return redirect('lecturer_list')

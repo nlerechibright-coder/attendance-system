@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Enrollments{% endblock %}
+{% block content %}
+<div class="card p-6">
+    <div class="flex justify-between items-center mb-6"><h2 class="text-xl font-bold">Enrollment Management</h2><a href="{% url 'enrollment_create' %}" class="btn-primary btn-sm">+ Add Enrollment</a></div>
+    <div class="overflow-x-auto"><table class="w-full text-sm text-left">
+        <thead class="text-xs uppercase bg-slate-50 text-slate-500"><tr><th class="px-4 py-3">Student</th><th class="px-4 py-3">Course</th><th class="px-4 py-3">Date</th></tr></thead>
+        <tbody>{% for enrollment in enrollments %}<tr class="border-b bg-white">
+            <td class="px-4 py-3 font-medium">{{ enrollment.student.registration_number }}</td><td class="px-4 py-3">{{ enrollment.course.course_code }}</td><td class="px-4 py-3">{{ enrollment.enrolled_date }}</td>
+        </tr>{% empty %}<tr><td colspan="3" class="px-4 py-3 text-center text-slate-500">No enrollments found.</td></tr>{% endfor %}</tbody>
+    </table></div>
+</div>{% endblock %}

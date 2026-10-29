@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<div class="card p-6">
+    <div class="flex justify-between items-center mb-6"><h2 class="text-xl font-bold">Attendance Reports</h2><a href="{% url 'export_attendance_csv' %}" class="btn-secondary btn-sm">Export CSV</a></div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-indigo-50 p-4 rounded-xl text-center"><p class="text-2xl font-black text-indigo-600">{{ total_records }}</p><p class="text-xs font-bold uppercase text-slate-500">Total Records</p></div>
+        <div class="bg-emerald-50 p-4 rounded-xl text-center"><p class="text-2xl font-black text-emerald-600">{{ unique_students }}</p><p class="text-xs font-bold uppercase text-slate-500">Unique Students</p></div>
+    </div>
+    <h3 class="font-bold mb-4">Recent Records</h3>
+    <div class="overflow-x-auto"><table class="w-full text-sm text-left">
+        <thead class="text-xs uppercase bg-slate-50 text-slate-500"><tr><th class="px-4 py-3">Date</th><th class="px-4 py-3">Student</th><th class="px-4 py-3">Course</th><th class="px-4 py-3">Status</th></tr></thead>
+        <tbody>{% for rec in records %}<tr class="border-b bg-white">
+            <td class="px-4 py-3">{{ rec.timestamp|date:"M d, Y H:i" }}</td><td class="px-4 py-3 font-medium">{{ rec.student.registration_number }}</td><td class="px-4 py-3">{{ rec.session.course.course_code }}</td><td class="px-4 py-3"><span class="badge-green">{{ rec.status }}</span></td>
+        </tr>{% empty %}<tr><td colspan="4" class="px-4 py-3 text-center text-slate-500">No records found.</td></tr>{% endfor %}</tbody>
+    </table></div>
+</div>{% endblock %}
